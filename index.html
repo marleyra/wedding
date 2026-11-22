@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- EDIT: names in the page title -->
+  <title>Save the Date · Amanda &amp; Marley</title>
+  <meta name="description" content="Save the date! Share your mailing address so we can send you a formal invitation." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* Heading font (file lives in fonts/) */
+    @font-face {
+      font-family: "Rumani";
+      src: url("fonts/rumani/Rumani.ttf") format("truetype");
+      font-display: swap;
+    }
+    :root {
+      --bg: #F8F5EE;           /* soft off-white */
+      --bg-deep: #F0EBDF;      /* slightly deeper off-white for the form band */
+      --ink: #013276;          /* dark blue */
+      --ink-deep: #01275E;
+      --muted: rgba(1, 50, 118, 0.7);
+      --accent: #013276;
+      --line: rgba(1, 50, 118, 0.28);
+      --field: rgba(255, 255, 255, 0.7);
+      --error: #B3261E;
+      --subway-line: #0039A6;  /* MTA A line blue */
+      --subway-line-2: #FF6319; /* MTA M line orange */
+
+      --display: "Rumani", Georgia, serif;
+      --body: "Instrument Sans", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--body);
+      font-weight: 400;
+      color: var(--ink);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem 9rem;  /* room at the bottom for the lines to merge */
+      position: relative;
+    }
+    .frame {
+      max-width: 720px;
+      width: 100%;
+    }
+    h1 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(3rem, 10.5vw, 5.75rem);
+      line-height: 1.1;
+      transform: rotate(-3deg);
+      margin-bottom: 24px;
+    }
+    .names {
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      line-height: 1.15;
+      margin: 1rem 0 0;
+    }
+    .names .amp { color: var(--accent); }
+    .graphic {
+      height: clamp(160px, 28vw, 260px);
+      margin: 2rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .graphic img { max-height: 95%; max-width: 95%; }
+
+    .date {
+      font-family: var(--display);
+      font-size: clamp(1.9rem, 5vw, 2.6rem);
+      letter-spacing: 0.08em;
+    }
+    .location {
+      font-family: var(--display);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: clamp(1.1rem, 3vw, 1.35rem);
+      color: var(--ink);
+      margin-top: 0.5rem;
+    }
+    .note {
+      margin-top: 2.5rem;
+      font-style: normal;
+      font-family: var(--display);
+            font-size: 1.15rem;
+      color: var(--muted);
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.9rem 2.2rem;
+      background: var(--ink);
+      color: var(--bg);
+      border-radius: 999px;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    .btn:hover, .btn:focus-visible { background: var(--ink-deep); }
+    .btn:disabled { opacity: 0.6; cursor: wait; }
+
+    /* ---------- Hero buttons + Add to Calendar ---------- */
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 0.75rem 1rem;
+      margin-top: 2rem;
+    }
+    .cta-row .btn { margin-top: 0; }
+    /* Both buttons the same width, centered as a pair */
+    .cta-row > .btn, .cta-row > .cal-menu { width: 14rem; text-align: center; }
+    .cal-menu summary { display: block; width: 100%; }
+    .btn-outline {
+      background: transparent;
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1.5px var(--ink);
+    }
+    .btn-outline:hover, .btn-outline:focus-visible { background: rgba(1, 50, 118, 0.08); }
+    .cal-menu { position: relative; }
+    .cal-menu summary { list-style: none; }
+    .cal-menu summary::-webkit-details-marker { display: none; }
+    .cal-menu[open] summary { background: rgba(1, 50, 118, 0.08); }
+    .cal-options {
+      position: absolute;
+      top: calc(100% + 0.5rem);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      min-width: 200px;
+      background: #fff;
+      border-radius: 14px;
+      padding: 0.4rem;
+      box-shadow: 0 10px 30px rgba(1, 39, 94, 0.18);
+      text-align: left;
+    }
+    .cal-options a {
+      display: block;
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .cal-options a:hover, .cal-options a:focus-visible { background: rgba(1, 50, 118, 0.08); }
+
+    /* ---------- Subway lines (A + M trains) ----------
+       The A (blue) runs down the left and the M (orange) down the right.
+       Below the buttons they turn in, meet in the middle, and run down together. */
+    .route {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .route svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .route-stop {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      transform: translate(-50%, -50%);
+      background: #000;                   /* local stop */
+      border: 1.5px solid #fff;
+      border-radius: 50%;
+    }
+    .route-stop.is-express { background: #fff; border: 2.5px solid #000; }
+    /* Where the two lines meet: one oblong stop spanning both */
+    .route-stop.is-transfer { width: 24px; height: 14px; border-radius: 999px; background: #fff; border: 2.5px solid #000; }
+    @media (max-width: 600px) {
+      .hero { padding-left: 3rem; padding-right: 3rem; }
+    }
+
+    /* ---------- Sections ---------- */
+    section { padding: 5rem 1.5rem; }
+    .container { max-width: 720px; margin: 0 auto; }
+    h2 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: clamp(2.4rem, 7vw, 3.5rem);
+      text-align: center;
+      margin-bottom: 0.5rem;
+      text-wrap: balance;  /* even line lengths, no single word left alone on a line */
+    }
+
+    /* ---------- Form ---------- */
+    #address { background: var(--bg-deep); }
+    #address h2 { margin-bottom: 3rem; }  /* space above the form */
+    form { display: grid; gap: 1.25rem; }
+    .row { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+    @media (min-width: 600px) {
+      .row.two { grid-template-columns: 1fr 1fr; }
+      .row.three { grid-template-columns: 2fr 1fr 1fr; }
+    }
+    label {
+      display: block;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-size: 0.7rem;
+      font-weight: 500;
+      margin-bottom: 0.4rem;
+    }
+    label .opt { color: var(--muted); text-transform: none; letter-spacing: 0; font-weight: 400; }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.8rem 0.9rem;
+      border: 1px solid var(--line);
+      background: var(--field);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--ink);
+      border-radius: 12px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--ink);
+      background: #fff;
+    }
+    ::placeholder { color: var(--muted); opacity: 0.7; }
+    input:user-invalid { border-color: var(--error); }
+    .hp { position: absolute; left: -9999px; } /* spam honeypot */
+    .form-actions { text-align: center; }
+    .status {
+      text-align: center;
+      margin-top: 1rem;
+      min-height: 1.5rem;
+      font-size: 0.95rem;
+    }
+    .status.error { color: var(--error); }
+    .regrets-text { text-align: center; }
+    .regrets-text a, .back-link {
+      color: var(--ink);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+    .regrets-text a:hover, .back-link:hover { text-decoration-thickness: 2px; }
+    .back-link { display: inline-block; margin-top: 0.5rem; font-size: 0.9rem; }
+    .regrets-form {
+      display: grid;
+      gap: 1.25rem;
+      text-align: left;
+    }
+    form[hidden] { display: none; }
+    .thanks {
+      display: none;
+      text-align: center;
+      padding: 2rem 0;
+    }
+    .thanks h3 {
+      font-family: var(--display);
+      font-weight: 400;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 3rem 1.5rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+    }
+    footer .initials {
+      font-family: var(--display);
+            font-size: 1.75rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 0.75rem;
+    }
+    /* Turntable drawing, flush in the bottom-left corner of the address section */
+    #address { position: relative; --tt-w: clamp(163px, 20vw, 275px); }
+    .corner-art {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: var(--tt-w);
+      height: auto;
+      display: block;
+      pointer-events: none;
+    }
+    /* When the form is close to the edge, leave room below it for the turntable */
+    @media (max-width: 1550px) {
+      #address { padding-bottom: calc(var(--tt-w) * 0.71 + 2rem); }
+    }
+    footer .bullet {
+      width: 2.75rem;
+      height: 2.75rem;
+      border-radius: 50%;
+    }
+
+
+  </style>
+</head>
+<body>
+
+  <!-- ===================== SAVE THE DATE ===================== -->
+  <header class="hero">
+    <!-- A + M train lines: stops are placed next to each line of text by the script below -->
+    <div class="route" id="route" aria-hidden="true"></div>
+    <div class="frame">
+      <h1>Save the Date!</h1>
+      <!-- EDIT: your names -->
+      <h2 class="names">Amanda <span class="amp">&amp;</span> Marley</h2>
+      <div class="graphic">
+        <img src="images/wine_glasses_vector_navy.svg" alt="Two wine glasses clinking" />
+      </div>
+      <!-- EDIT: date + location -->
+      <p class="date">Friday · October 8, 2027</p>
+      <p class="location">Brooklyn, NY</p>
+
+      <p class="note">Formal invitation to follow</p>
+      <div class="cta-row">
+        <a class="btn" href="#address">Share Your Address</a>
+        <!-- EDIT: update the event details in these links and in save-the-date.ics if anything changes -->
+        <details class="cal-menu">
+          <summary class="btn btn-outline">Add to Calendar</summary>
+          <div class="cal-options">
+            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Amanda%20%26%20Marley%27s%20Wedding&amp;dates=20271008/20271009&amp;location=Brooklyn%2C%20NY&amp;details=Save%20the%20date!%20Formal%20invitation%20to%20follow." target="_blank" rel="noopener">Google Calendar</a>
+            <a href="save-the-date.ics" download>Apple Calendar</a>
+            <a href="https://outlook.live.com/calendar/0/action/compose?subject=Amanda%20%26%20Marley%27s%20Wedding&amp;startdt=2027-10-08&amp;enddt=2027-10-09&amp;allday=true&amp;location=Brooklyn%2C%20NY&amp;body=Save%20the%20date!%20Formal%20invitation%20to%20follow." target="_blank" rel="noopener">Outlook</a>
+            <a href="save-the-date.ics" download>Other (.ics file)</a>
+          </div>
+        </details>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================== ADDRESS FORM ===================== -->
+  <section id="address">
+    <div class="container">
+      <h2>Where Should We Send Your Invitation?</h2>
+
+      <form id="address-form" novalidate>
+        <div class="row">
+          <div>
+            <label for="name">Name(s) on invitation</label>
+            <input id="name" name="name" type="text" required autocomplete="name" placeholder="e.g. Alex &amp; Jordan Smith" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="street">Street address</label>
+            <input id="street" name="street" type="text" required autocomplete="address-line1" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="street2">Apt, suite, unit <span class="opt">(optional)</span></label>
+            <input id="street2" name="street2" type="text" autocomplete="address-line2" />
+          </div>
+        </div>
+
+        <div class="row three">
+          <div>
+            <label for="city">City</label>
+            <input id="city" name="city" type="text" required autocomplete="address-level2" />
+          </div>
+          <div>
+            <label for="state">State / Province</label>
+            <input id="state" name="state" type="text" required autocomplete="address-level1" />
+          </div>
+          <div>
+            <label for="zip">ZIP / Postal</label>
+            <input id="zip" name="zip" type="text" required autocomplete="postal-code" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="country">Country</label>
+            <input id="country" name="country" type="text" required autocomplete="country-name" value="United States" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="message">Note for the couple <span class="opt">(optional)</span></label>
+            <textarea id="message" name="message" rows="3"></textarea>
+          </div>
+        </div>
+
+        <input type="hidden" name="response" value="Sending address" />
+
+        <!-- Honeypot: bots fill this, humans never see it -->
+        <div class="hp" aria-hidden="true">
+          <label for="website">Website</label>
+          <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="form-actions">
+          <button class="btn" type="submit" id="submit-btn">Confirm</button>
+          <p class="status" id="status" role="status" aria-live="polite"></p>
+          <p class="regrets-text">If you already know you can't make it, <a href="#regrets-form" id="regrets-link">please let us know here</a>.</p>
+        </div>
+      </form>
+
+      <!-- ===== Can't make it (shown in place of the address form) ===== -->
+      <div class="regrets" id="regrets">
+        <form id="regrets-form" class="regrets-form" hidden novalidate>
+          <div>
+            <label for="regrets-name">Your name(s)</label>
+            <input id="regrets-name" name="name" type="text" required autocomplete="name" />
+          </div>
+          <div>
+            <label for="regrets-message">Note for the couple <span class="opt">(optional)</span></label>
+            <textarea id="regrets-message" name="message" rows="3"></textarea>
+          </div>
+          <input type="hidden" name="response" value="Can't make it" />
+          <div class="hp" aria-hidden="true">
+            <label for="regrets-website">Website</label>
+            <input id="regrets-website" name="website" type="text" tabindex="-1" autocomplete="off" />
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit" id="regrets-btn">Send</button>
+            <p class="status" id="regrets-status" role="status" aria-live="polite"></p>
+            <a href="#address" class="back-link" id="regrets-back">&larr; Back to the address form</a>
+          </div>
+        </form>
+      </div>
+
+      <div class="thanks" id="thanks">
+        <h3>Thank you!</h3>
+        <p>We've got your address. Keep an eye on your mailbox!</p>
+      </div>
+
+      <div class="thanks" id="regrets-thanks">
+        <h3>Thanks for letting us know</h3>
+        <p>We'll miss you, and we'll raise a glass in your honor!</p>
+      </div>
+    </div>
+    <img class="corner-art" src="images/turntable_drawing_navy.svg" alt="" aria-hidden="true" />
+  </section>
+
+  <footer>
+    <!-- EDIT: initials + date -->
+    <span class="initials">
+      <img class="bullet" src="images/subway-a.svg" alt="A" />
+      <span class="amp">&amp;</span>
+      <img class="bullet" src="images/subway-m.svg" alt="M" />
+    </span>
+    10 · 08 · 2027
+  </footer>
+
+
+
+  <script>
+    // ============ CONFIG — EDIT THESE ============
+    // Paste your Google Apps Script Web App URL here (see README.md).
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwxeqYJOcZg8thxJ4-i1rzsYB44efVhnH3mGogEVaIBjpEyX2jwBEoviGCeKsMKTb6y/exec";
+    // =============================================
+
+    // Sends a form to the Google Sheet. Used by the address form and the "can't make it" form.
+    function connectForm(formEl, btnEl, statusEl, idleLabel, busyLabel, onSuccess) {
+      formEl.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        statusEl.className = "status";
+        statusEl.textContent = "";
+
+        if (!formEl.checkValidity()) {
+          formEl.reportValidity();
+          statusEl.className = "status error";
+          statusEl.textContent = "Please fill in the required fields.";
+          return;
+        }
+
+        // Honeypot tripped — pretend success, send nothing
+        if (formEl.website.value) { onSuccess(); return; }
+
+        if (SCRIPT_URL.startsWith("PASTE_")) {
+          statusEl.className = "status error";
+          statusEl.textContent = "Form isn't connected yet — add SCRIPT_URL (see README).";
+          return;
+        }
+
+        btnEl.disabled = true;
+        btnEl.textContent = busyLabel;
+
+        try {
+          const data = new URLSearchParams(new FormData(formEl));
+          data.delete("website");
+          // no-cors: Apps Script doesn't return CORS headers, so the response is opaque.
+          await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", body: data });
+          onSuccess();
+        } catch (err) {
+          statusEl.className = "status error";
+          statusEl.textContent = "Something went wrong. Please try again or contact us directly.";
+          btnEl.disabled = false;
+          btnEl.textContent = idleLabel;
+        }
+      });
+    }
+
+    const addressForm = document.getElementById("address-form");
+    const regrets = document.getElementById("regrets");
+    const regretsForm = document.getElementById("regrets-form");
+    const addressHeading = document.querySelector("#address h2");
+    const addressHeadingHTML = addressHeading.innerHTML;
+
+    function finish(thanksId) {
+      addressForm.style.display = "none";
+      regrets.style.display = "none";
+      document.getElementById(thanksId).style.display = "block";
+    }
+
+    connectForm(addressForm, document.getElementById("submit-btn"), document.getElementById("status"),
+      "Confirm", "Confirming…", () => finish("thanks"));
+    connectForm(regretsForm, document.getElementById("regrets-btn"), document.getElementById("regrets-status"),
+      "Send", "Sending…", () => finish("regrets-thanks"));
+
+    // "Please let us know here" swaps the address form for the short can't-make-it form
+    function showRegrets(show) {
+      addressForm.hidden = show;
+      regretsForm.hidden = !show;
+      addressHeading.innerHTML = show ? "Can't Make It?" : addressHeadingHTML;
+      addressHeading.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (show) document.getElementById("regrets-name").focus({ preventScroll: true });
+    }
+    document.getElementById("regrets-link").addEventListener("click", e => { e.preventDefault(); showRegrets(true); });
+    document.getElementById("regrets-back").addEventListener("click", e => { e.preventDefault(); showRegrets(false); });
+
+
+
+    // ===== A + M train lines =====
+    // The A runs down the left and the M down the right, each with its own stops
+    // beside the text. Below the buttons they turn in with rounded corners,
+    // meet in the middle, and run down side by side into the form section.
+    (function () {
+      const hero = document.querySelector(".hero");
+      const route = document.getElementById("route");
+      // Each line stops at different places (the two lines aren't mirror images).
+      // Both stop at the date. Express stops (white) are a subset of each line's stops.
+      const blueStops = ".frame h1, .frame .graphic img, .frame .date, .frame .location, .frame .btn:not(.btn-outline)";
+      const orangeStops = ".frame .names, .frame .date, .frame .note, .frame .btn-outline";
+      const blueExpress = ".frame h1, .frame .date";
+      const orangeExpress = ".frame .names, .frame .date";
+      const NS = "http://www.w3.org/2000/svg";
+      const LINE_W = 6, GAP = 2;   // merged: two 6px lines with a 2px gap
+
+      function lineRects(el) {
+        // Buttons and the illustration count as one line; text gets one per rendered line.
+        if (el.classList.contains("btn") || el.tagName === "IMG") return [el.getBoundingClientRect()];
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const rects = [];
+        for (const r of range.getClientRects()) {
+          if (r.height === 0) continue;
+          const c = r.top + r.height / 2;
+          if (!rects.some(x => Math.abs(x.top + x.height / 2 - c) < r.height / 2)) rects.push(r);
+        }
+        return rects;
+      }
+
+      function addStop(x, y, cls) {
+        const stop = document.createElement("div");
+        stop.className = "route-stop" + (cls ? " " + cls : "");
+        stop.style.left = x + "px";
+        stop.style.top = y + "px";
+        route.appendChild(stop);
+      }
+
+      function draw() {
+        const box = hero.getBoundingClientRect();
+        const W = hero.clientWidth, H = hero.offsetHeight;
+        const collect = (sel, express) => [...document.querySelectorAll(sel)].flatMap(el =>
+          lineRects(el).map(r => ({ y: r.top + r.height / 2 - box.top, left: r.left - box.left, express: el.matches(express) })));
+        const blue = collect(blueStops, blueExpress), orange = collect(orangeStops, orangeExpress);
+        const items = blue.concat(orange);
+        route.innerHTML = "";
+        if (!items.length) return;
+
+        // Horizontal position: halfway between the page edge margin and the widest line
+        // of text, keeping at least 28px clear. On phones the lines hug the edges.
+        const vw = window.innerWidth;
+        const edgeX = vw <= 600 ? 16 : Math.min(64, Math.max(20, vw * 0.05));
+        const textLeft = Math.min(...items.map(i => i.left));
+        const x = vw <= 600 ? edgeX : Math.max(edgeX, Math.min(edgeX + (textLeft - edgeX) / 2, textLeft - 28));
+        const cx = W / 2, half = (LINE_W + GAP) / 2;
+
+        // The turn happens in the space between the buttons and the bottom of the hero.
+        const lastY = Math.max(...items.map(i => i.y));
+        const room = H - lastY;
+        const R = Math.max(12, Math.min(40, room * 0.25, (cx - half - x) / 2));   // corner radius
+        const turnY = lastY + Math.max(28, room * 0.3);                          // the horizontal run
+        // Down, round the corner, across toward the middle, round the corner, down.
+        const path = (from, to, dir) =>
+          `M${from} 0 V${turnY - R} A${R} ${R} 0 0 ${dir > 0 ? 0 : 1} ${from + dir * R} ${turnY}` +
+          ` H${to - dir * R} A${R} ${R} 0 0 ${dir > 0 ? 1 : 0} ${to} ${turnY + R} V${H}`;
+
+        const svg = document.createElementNS(NS, "svg");
+        svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+        svg.setAttribute("preserveAspectRatio", "none");
+        [[x, cx - half, 1, "var(--subway-line)"], [W - x, cx + half, -1, "var(--subway-line-2)"]].forEach(([from, to, dir, color]) => {
+          const p = document.createElementNS(NS, "path");
+          p.setAttribute("d", path(from, to, dir));
+          p.setAttribute("fill", "none");
+          p.setAttribute("stroke-width", LINE_W);
+          p.style.stroke = color;
+          svg.appendChild(p);
+        });
+        route.appendChild(svg);
+
+        blue.forEach(({ y, express }) => addStop(x, y, express ? "is-express" : ""));
+        orange.forEach(({ y, express }) => addStop(W - x, y, express ? "is-express" : ""));
+        // Where they've merged: one oblong stop across both lines.
+        addStop(cx, turnY + R + (H - turnY - R) * 0.4, "is-transfer");
+      }
+
+      draw();
+      document.fonts.ready.then(draw);
+      document.querySelectorAll(".frame .graphic img").forEach(img => img.complete || img.addEventListener("load", draw));
+      new ResizeObserver(draw).observe(hero);
+    })();
+
+
+    // ===== Add to Calendar menu: close on outside click or after choosing =====
+    document.addEventListener("click", e => {
+      document.querySelectorAll(".cal-menu[open]").forEach(m => {
+        if (!m.contains(e.target) || e.target.closest(".cal-options a")) m.removeAttribute("open");
+      });
+    });
+  </script>
+</body>
+</html>
