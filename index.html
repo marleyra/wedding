@@ -191,6 +191,8 @@
     .route-stop.is-transfer { width: 24px; height: 14px; border-radius: 999px; background: #fff; border: 2.5px solid #000; }
     @media (max-width: 600px) {
       .hero { padding-left: 3rem; padding-right: 3rem; }
+      .date-day { display: block; }  /* mobile: "Friday" on its own line, date below */
+      .date-sep { display: none; }
     }
 
     /* ---------- Sections ---------- */
@@ -333,7 +335,7 @@
         <img src="images/wine_glasses_vector_navy.svg" alt="Two wine glasses clinking" />
       </div>
       <!-- EDIT: date + location -->
-      <p class="date">Friday · October 8, 2027</p>
+      <p class="date"><span class="date-day">Friday</span><span class="date-sep"> · </span><span class="date-full">October 8, 2027</span></p>
       <p class="location">Brooklyn, NY</p>
 
       <p class="note">Formal invitation to follow</p>
