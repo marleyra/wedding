@@ -8,7 +8,7 @@
   <meta name="description" content="Save the date! Share your mailing address so we can send you a formal invitation." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     /* Heading font (file lives in fonts/) */
     @font-face {
@@ -89,15 +89,17 @@
       font-family: var(--display);
       text-transform: uppercase;
       letter-spacing: 0.12em;
-      font-size: clamp(1.1rem, 3vw, 1.35rem);
+      font-size: clamp(1.45rem, 4vw, 1.8rem);
       color: var(--ink);
       margin-top: 0.5rem;
     }
     .note {
       margin-top: 2.5rem;
-      font-style: normal;
-      font-family: var(--display);
-            font-size: 1.15rem;
+      font-family: var(--body);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-size: 0.78rem;
       color: var(--muted);
     }
     .btn {
@@ -115,9 +117,10 @@
       border: none;
       cursor: pointer;
       font-family: inherit;
-      transition: background 0.2s;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
     }
-    .btn:hover, .btn:focus-visible { background: var(--ink-deep); }
+    /* All CTAs turn M-train orange on hover */
+    .btn:hover, .btn:focus-visible { background: var(--subway-line-2); color: #fff; }
     .btn:disabled { opacity: 0.6; cursor: wait; }
 
     /* ---------- Hero buttons + Add to Calendar ---------- */
@@ -138,7 +141,7 @@
       color: var(--ink);
       box-shadow: inset 0 0 0 1.5px var(--ink);
     }
-    .btn-outline:hover, .btn-outline:focus-visible { background: rgba(1, 50, 118, 0.08); }
+    .btn-outline:hover, .btn-outline:focus-visible { background: var(--subway-line-2); color: #fff; box-shadow: inset 0 0 0 1.5px var(--subway-line-2); }
     .cal-menu { position: relative; }
     .cal-menu summary { list-style: none; }
     .cal-menu summary::-webkit-details-marker { display: none; }
@@ -165,7 +168,7 @@
       font-size: 0.9rem;
       font-weight: 500;
     }
-    .cal-options a:hover, .cal-options a:focus-visible { background: rgba(1, 50, 118, 0.08); }
+    .cal-options a:hover, .cal-options a:focus-visible { background: rgba(255, 99, 25, 0.14); color: #C2410C; }
 
     /* ---------- Subway lines (A + M trains) ----------
        The A (blue) runs down the left and the M (orange) down the right.
@@ -259,7 +262,7 @@
       text-decoration: underline;
       text-underline-offset: 3px;
     }
-    .regrets-text a:hover, .back-link:hover { text-decoration-thickness: 2px; }
+    .regrets-text a:hover, .back-link:hover { text-decoration-thickness: 2px; color: var(--subway-line-2); }
     .back-link { display: inline-block; margin-top: 0.5rem; font-size: 0.9rem; }
     .regrets-form {
       display: grid;
@@ -568,10 +571,12 @@
       const route = document.getElementById("route");
       // Each line stops at different places (the two lines aren't mirror images).
       // Both stop at the date. Express stops (white) are a subset of each line's stops.
-      const blueStops = ".frame h1, .frame .graphic img, .frame .date, .frame .location, .frame .btn:not(.btn-outline)";
-      const orangeStops = ".frame .names, .frame .date, .frame .note, .frame .btn-outline";
-      const blueExpress = ".frame h1, .frame .date";
-      const orangeExpress = ".frame .names, .frame .date";
+      // The date is split in two: on phones "Friday" sits on its own line above the full date.
+      // Blue skips "Friday"; orange stops there as a local (black) stop. Both are express at the full date.
+      const blueStops = ".frame h1, .frame .graphic img, .frame .date-full, .frame .location, .frame .btn:not(.btn-outline)";
+      const orangeStops = ".frame .names, .frame .date-day, .frame .date-full, .frame .note, .frame .btn-outline";
+      const blueExpress = ".frame .date-full";
+      const orangeExpress = ".frame .names, .frame .date-full";
       const NS = "http://www.w3.org/2000/svg";
       const LINE_W = 6, GAP = 2;   // merged: two 6px lines with a 2px gap
 
@@ -600,37 +605,55 @@
       function draw() {
         const box = hero.getBoundingClientRect();
         const W = hero.clientWidth, H = hero.offsetHeight;
+        // Stops that land on the same line (e.g. "Friday" and the date on desktop) become one stop, express if either is.
         const collect = (sel, express) => [...document.querySelectorAll(sel)].flatMap(el =>
-          lineRects(el).map(r => ({ y: r.top + r.height / 2 - box.top, left: r.left - box.left, express: el.matches(express) })));
+          lineRects(el).map(r => ({ y: r.top + r.height / 2 - box.top, left: r.left - box.left, express: el.matches(express) })))
+          .reduce((acc, st) => {
+            const same = acc.find(o => Math.abs(o.y - st.y) < 8);
+            if (same) { same.express = same.express || st.express; same.left = Math.min(same.left, st.left); }
+            else acc.push(st);
+            return acc;
+          }, []);
         const blue = collect(blueStops, blueExpress), orange = collect(orangeStops, orangeExpress);
         const items = blue.concat(orange);
         route.innerHTML = "";
         if (!items.length) return;
 
-        // Horizontal position: halfway between the page edge margin and the widest line
-        // of text, keeping at least 28px clear. On phones the lines hug the edges.
+        // Horizontal position: on desktop, a fifth of the way from the page edge margin to the widest
+        // line of text (close to the edge), keeping at least 28px clear. On phones the lines hug the edges.
         const vw = window.innerWidth;
         const edgeX = vw <= 600 ? 16 : Math.min(64, Math.max(20, vw * 0.05));
         const textLeft = Math.min(...items.map(i => i.left));
-        const x = vw <= 600 ? edgeX : Math.max(edgeX, Math.min(edgeX + (textLeft - edgeX) / 2, textLeft - 28));
+        const x = vw <= 600 ? edgeX : Math.max(edgeX, Math.min(edgeX + (textLeft - edgeX) * 0.2, textLeft - 28));
         const cx = W / 2, half = (LINE_W + GAP) / 2;
 
-        // The turn happens in the space between the buttons and the bottom of the hero.
+        // The orange turn happens in the space between the buttons and the bottom of the hero.
         const lastY = Math.max(...items.map(i => i.y));
         const room = H - lastY;
         const R = Math.max(12, Math.min(40, room * 0.25, (cx - half - x) / 2));   // corner radius
         const turnY = lastY + Math.max(28, room * 0.3);                          // the horizontal run
-        // Down, round the corner, across toward the middle, round the corner, down.
-        const path = (from, to, dir) =>
-          `M${from} 0 V${turnY - R} A${R} ${R} 0 0 ${dir > 0 ? 0 : 1} ${from + dir * R} ${turnY}` +
-          ` H${to - dir * R} A${R} ${R} 0 0 ${dir > 0 ? 1 : 0} ${to} ${turnY + R} V${H}`;
+        // Orange: down the right, round the corner, across toward the middle, round the corner, down.
+        const orangePath =
+          `M${W - x} 0 V${turnY - R} A${R} ${R} 0 0 1 ${W - x - R} ${turnY}` +
+          ` H${cx + half + R} A${R} ${R} 0 0 0 ${cx + half} ${turnY + R} V${H}`;
+
+        // Blue: comes in from the left edge just below "Save the Date!", bends down into the
+        // left-hand column, then (like before) turns in below the buttons to meet the orange.
+        // Halfway between the bottom of the heading and the top of the names.
+        const h1Bottom = document.querySelector(".frame h1").getBoundingClientRect().bottom - box.top;
+        const namesTop = document.querySelector(".frame .names").getBoundingClientRect().top - box.top;
+        const entryY = (h1Bottom + namesTop) / 2;
+        const bluePath =
+          `M0 ${entryY} H${x - R} A${R} ${R} 0 0 1 ${x} ${entryY + R}` +
+          ` V${turnY - R} A${R} ${R} 0 0 0 ${x + R} ${turnY}` +
+          ` H${cx - half - R} A${R} ${R} 0 0 1 ${cx - half} ${turnY + R} V${H}`;
 
         const svg = document.createElementNS(NS, "svg");
         svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
         svg.setAttribute("preserveAspectRatio", "none");
-        [[x, cx - half, 1, "var(--subway-line)"], [W - x, cx + half, -1, "var(--subway-line-2)"]].forEach(([from, to, dir, color]) => {
+        [[bluePath, "var(--subway-line)"], [orangePath, "var(--subway-line-2)"]].forEach(([d, color]) => {
           const p = document.createElementNS(NS, "path");
-          p.setAttribute("d", path(from, to, dir));
+          p.setAttribute("d", d);
           p.setAttribute("fill", "none");
           p.setAttribute("stroke-width", LINE_W);
           p.style.stroke = color;
@@ -638,7 +661,8 @@
         });
         route.appendChild(svg);
 
-        blue.forEach(({ y, express }) => addStop(x, y, express ? "is-express" : ""));
+        // Blue only has stops below where it enters (the heading is above it).
+        blue.filter(s => s.y > entryY + R).forEach(({ y, express }) => addStop(x, y, express ? "is-express" : ""));
         orange.forEach(({ y, express }) => addStop(W - x, y, express ? "is-express" : ""));
         // Where they've merged: one oblong stop across both lines.
         addStop(cx, turnY + R + (H - turnY - R) * 0.4, "is-transfer");
